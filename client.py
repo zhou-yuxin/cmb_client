@@ -31,13 +31,19 @@ class Client:
                 return True
             current = time.time()
             if current - start_time > self._device.wait_timeout * 8:
-                return False
+                break
             if ret == None:
                 last_match_time = current
             else:
                 assert(ret == False)
                 if current - last_match_time > self._device.wait_timeout:
-                    return False
+                    break
+        self._device.screenshot("cmb_unmatched.png")
+        xml = self._device.dump_hierarchy()
+        fd = open("cmb_unmatched.xml", "w")
+        fd.write(xml)
+        fd.close()
+        return False
 
     def _element(self, **kwargs):
         if "resourceId" in kwargs:
