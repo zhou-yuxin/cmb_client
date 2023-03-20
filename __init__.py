@@ -89,7 +89,6 @@ class Client:
     def _gotoZZY2(self, action, target):
         is_ad_in_index = lambda: self._existAll(description = ("活动图片，双击后打开活动页面", "关闭"))
         is_login = lambda: self._exist(text = "短信安全登录")
-        is_mine = lambda: self._exist(description = "退出登录，按钮")
         is_zzy2 = lambda: self._existAll(text = ("朝朝盈2号", "了解朝朝盈2号"))
         def func():
             if target():
@@ -99,14 +98,12 @@ class Client:
             elif is_ad_in_index():
                 self._click(description = "关闭")
             elif self._isIndex():
-                self._click(text = "我的")
+                self._click(text = "朝朝盈2号")
             elif self._isKeyboard():
                 self._keyboard(self._app_password)
                 self._click(text = "登录")
             elif is_login():
                 self._click(resourceId = "editPassword")
-            elif is_mine():
-                self._click(text = "朝朝盈2号")
             else:
                 return False
         if not self._routine(func):
