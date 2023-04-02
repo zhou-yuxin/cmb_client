@@ -95,10 +95,10 @@ class Client:
                 return True
             elif is_zzy2():
                 self._click(text = action)
-            elif is_ad_in_index():
-                self._click(description = "关闭")
             elif self._isIndex():
                 self._click(text = "朝朝盈2号")
+            elif is_ad_in_index():
+                self._click(description = "关闭")
             elif self._isKeyboard():
                 self._keyboard(self._app_password)
                 self._click(text = "登录")
