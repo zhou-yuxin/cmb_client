@@ -19,7 +19,8 @@ class Client:
         self._trans_password = trans_password
 
     def __del__(self):
-        self._device.app_stop(self.PACKAGE_NAME)
+        # self._device.app_stop(self.PACKAGE_NAME)
+        pass
 
     def _routine(self, func):
         start_time = time.time()
@@ -71,17 +72,27 @@ class Client:
     def _setText(self, string, **kwargs):
         self._element(**kwargs).set_text(string)
 
-    def _isKeyboard(self):
-        return self._exist(resourceId = "customkeyboard_view")
+    class Password:
 
-    def _keyboard(self, digits):
-        for _ in range(len(digits) + 1):
-            self._click(description = "删除")
-        for n in digits:
-            if not ("0" <= n <= "9"):
-                raise ValueError("键盘输入仅支持数字")
-            self._click(text = n, className = "android.widget.Button")
-        self._click(text = "完成", resourceId = "cmbkb_tvComplete")
+        def __init__(self, client, password):
+            self._client = client
+            self._password = password
+            self._is_first = True
+
+        def input(self):
+            client: Client = self._client
+            if not client._exist(resourceId = "customkeyboard_view"):
+                return False
+            if not self._is_first:
+                for _ in range(len(self._password) + 1):
+                    client._click(description = "删除")
+            for n in self._password:
+                if not ("0" <= n <= "9"):
+                    raise ValueError("键盘输入仅支持数字")
+                client._click(text = n, className = "android.widget.Button")
+            client._click(text = "完成", resourceId = "cmbkb_tvComplete")
+            self._is_first = False
+            return True
 
     def _isIndex(self):
         return self._exist(description = "扫一扫，按钮")
@@ -90,7 +101,9 @@ class Client:
         is_ad_in_index = lambda: self._existAll(description = ("活动图片，双击后打开活动页面", "关闭"))
         is_login = lambda: self._exist(text = "短信安全登录")
         is_zzy2 = lambda: self._existAll(text = ("朝朝盈2号", "了解朝朝盈2号"))
+        password = Client.Password(self, self._app_password)
         def func():
+            nonlocal password
             if target():
                 return True
             elif is_zzy2():
@@ -99,8 +112,7 @@ class Client:
                 self._click(text = "朝朝盈2号")
             elif is_ad_in_index():
                 self._click(description = "关闭")
-            elif self._isKeyboard():
-                self._keyboard(self._app_password)
+            elif password.input():
                 self._click(text = "登录")
             elif is_login():
                 self._click(resourceId = "editPassword")
@@ -136,9 +148,10 @@ class Client:
         is_confirm = lambda: self._exist(text = "确认转入")
         is_input_password = lambda: self._exist(text = "请输入取款密码")
         is_result = lambda: self._existAll(textContains = ("朝朝盈2号", "完成"))
+        password = Client.Password(self, self._trans_password)
         money = None
         def func():
-            nonlocal money
+            nonlocal password, money
             if is_buy_zzy2():
                 available = self._extractMoney("账户.*可用余额 ￥(<$>)")
                 if max_money is None:
@@ -149,11 +162,10 @@ class Client:
                     return True
                 self._setText(str(money), resourceId = "/buy_amt")
                 self._click(text = "下一步")
-            elif self._isKeyboard():
-                self._keyboard(self._trans_password)
+            elif password.input():
                 self._click((0.5, 0.95), className = "android.app.Dialog")
             elif is_input_password():
-                self._click(resourceId = "owl_remit_pwd_")
+                self._click(resourceId = "/owl_remit_pwd_")
             elif is_confirm():
                 self._click(className = "android.widget.CheckBox")
                 self._click(text = "确认转入")
@@ -173,12 +185,13 @@ class Client:
     def sellZZY2(self, max_money = None):
         is_sell_zzy2 = lambda: self._exist(text = "快速转出(当日无收益)")
         self._gotoZZY2("转出", is_sell_zzy2)
-        is_input_password = lambda: self._exist(text = "请输入交易密码")
+        is_input_password = lambda: self._exist(text = "请输入取款密码")
         is_confirm = lambda: self._exist(text = "《招商银行代销货币基金快速赎回服务协议》")
         is_result = lambda: self._existAll(textContains = ("朝朝盈2号", "完成"))
+        password = Client.Password(self, self._trans_password)
         money = None
         def func():
-            nonlocal money
+            nonlocal password, money
             if is_sell_zzy2():
                 available = self._extractMoney("(<$>)元")
                 if max_money is None:
@@ -189,11 +202,10 @@ class Client:
                     return True
                 self._setText(str(money), className = "android.widget.EditText")
                 self._click(text = "下一步")
-            elif self._isKeyboard():
-                self._keyboard(self._trans_password)
+            elif password.input():
                 self._click((0.5, 0.95), className = "android.app.Dialog")
             elif is_input_password():
-                self._click(resourceId = "owl_remit_pwd_")
+                self._click(resourceId = "/owl_remit_pwd_")
             elif is_confirm():
                 self._element(text = "已阅读并同意").left(text = "", clickable = True).click()
                 self._click(text = "确认转出")
