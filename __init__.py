@@ -19,8 +19,7 @@ class Client:
         self._trans_password = trans_password
 
     def __del__(self):
-        # self._device.app_stop(self.PACKAGE_NAME)
-        pass
+        self._device.app_stop(self.PACKAGE_NAME)
 
     def _routine(self, func):
         start_time = time.time()
