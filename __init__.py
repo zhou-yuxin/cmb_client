@@ -146,7 +146,7 @@ class Client:
         self._gotoZZY2("转入", is_buy_zzy2)
         is_confirm = lambda: self._exist(text = "确认转入")
         is_input_password = lambda: self._exist(text = "请输入取款密码")
-        is_result = lambda: self._existAll(textContains = ("朝朝盈2号", "完成"))
+        is_result = lambda: self._exist(text = "您的交易委托已受理")
         password = Client.Password(self, self._trans_password)
         money = None
         def func():
@@ -169,8 +169,6 @@ class Client:
                 self._click(className = "android.widget.CheckBox")
                 self._click(text = "确认转入")
             elif is_result():
-                if not self._exist(text = "您的交易委托已受理"):
-                    money = None
                 self._click(text = "完成")
                 return True
             else:
@@ -186,7 +184,7 @@ class Client:
         self._gotoZZY2("转出", is_sell_zzy2)
         is_input_password = lambda: self._exist(text = "请输入取款密码")
         is_confirm = lambda: self._exist(text = "《招商银行代销货币基金快速赎回服务协议》")
-        is_result = lambda: self._existAll(textContains = ("朝朝盈2号", "完成"))
+        is_result = lambda: self._exist(text = "您的交易委托已受理")
         password = Client.Password(self, self._trans_password)
         money = None
         def func():
@@ -209,8 +207,6 @@ class Client:
                 self._element(text = "已阅读并同意").left(text = "", clickable = True).click()
                 self._click(text = "确认转出")
             elif is_result():
-                if not self._exist(text = "您的交易委托已受理"):
-                    money = None
                 self._click(text = "完成")
                 return True
             else:
