@@ -19,7 +19,8 @@ class Client:
         self._trans_password = trans_password
 
     def __del__(self):
-        self._device.app_stop(self.PACKAGE_NAME)
+        # self._device.app_stop(self.PACKAGE_NAME)
+        pass
 
     def _routine(self, func):
         start_time = time.time()
@@ -144,7 +145,7 @@ class Client:
     def buyZZY2(self, max_money = None):
         is_buy_zzy2 = lambda: self._exist(textContains = "提交后，结合持仓智能分配转入金额")
         self._gotoZZY2("转入", is_buy_zzy2)
-        is_confirm = lambda: self._exist(text = "确认转入")
+        is_confirm = lambda: self._exist(textContains = "购买确认后，")
         is_input_password = lambda: self._exist(text = "请输入取款密码")
         is_result = lambda: self._exist(text = "您的交易委托已受理")
         password = Client.Password(self, self._trans_password)
@@ -152,22 +153,32 @@ class Client:
         def func():
             nonlocal password, money
             if is_buy_zzy2():
-                available = self._extractMoney("账户.*可用余额 ￥(<$>)")
+                available = self._extractMoney("账户.*可用余额[^\\d]+(<$>)元")
                 if max_money is None:
                     money = available
                 else:
                     money = min(Decimal("%.2f" % max_money), available)
                 if money == 0:
                     return True
-                self._setText(str(money), resourceId = "/buy_amt")
+                (_, _, _, y1) = self._element(text = "转入金额").bounds()
+                (_, y2, _, _) = self._element(textContains = "提交后，结合持仓智能").bounds()
+                self._device.click(0.5, int((y1 + y2) / 2))
+                str_money = str(money)
+                for _ in range(len(str_money) + 1):
+                    self._device.press("del")
+                for c in str_money:
+                    self._device.send_keys(c)
                 self._click(text = "下一步")
             elif password.input():
                 self._click((0.5, 0.95), className = "android.app.Dialog")
             elif is_input_password():
                 self._click(resourceId = "/owl_remit_pwd_")
             elif is_confirm():
-                self._click(className = "android.widget.CheckBox")
-                self._click(text = "确认转入")
+                if self._exist(textContains = "转入金额%s元" % money):
+                    self._click(className = "android.widget.CheckBox")
+                    self._click(text = "确定转入")
+                else:
+                    self._click(description = "返回，按钮")
             elif is_result():
                 self._click(text = "完成")
                 return True
@@ -204,8 +215,11 @@ class Client:
             elif is_input_password():
                 self._click(resourceId = "/owl_remit_pwd_")
             elif is_confirm():
-                self._element(text = "已阅读并同意").left(text = "", clickable = True).click()
-                self._click(text = "确认转出")
+                if self._exist(text = str(money)):
+                    self._element(text = "已阅读并同意").left(text = "", clickable = True).click()
+                    self._click(text = "确认转出")
+                else:
+                    self._click(description = "返回，按钮")
             elif is_result():
                 self._click(text = "完成")
                 return True
