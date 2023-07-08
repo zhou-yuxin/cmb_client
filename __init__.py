@@ -142,6 +142,11 @@ class Client:
         text:str = re.findall(rexp, text)[0]
         return Decimal(text.replace(",", ""))
 
+    def _toMoneyString(self, money):
+        return 
+        
+
+
     def buyZZY2(self, max_money = None):
         is_buy_zzy2 = lambda: self._exist(textContains = "提交后，结合持仓智能分配转入金额")
         self._gotoZZY2("转入", is_buy_zzy2)
@@ -174,7 +179,7 @@ class Client:
             elif is_input_password():
                 self._click(resourceId = "/owl_remit_pwd_")
             elif is_confirm():
-                if self._exist(textContains = "转入金额%s元" % money):
+                if self._exist(textContains = "转入金额{:,.2f}元".format(money)):
                     self._click(className = "android.widget.CheckBox")
                     self._click(text = "确定转入")
                 else:
@@ -215,7 +220,7 @@ class Client:
             elif is_input_password():
                 self._click(resourceId = "/owl_remit_pwd_")
             elif is_confirm():
-                if self._exist(text = str(money)):
+                if self._exist(text = "{:,.2f}".format(money)):
                     self._element(text = "已阅读并同意").left(text = "", clickable = True).click()
                     self._click(text = "确认转出")
                 else:
